@@ -1,0 +1,8 @@
+{
+  "name": "MailPoet Bouncer",
+  "description": "Procesamiento seguro, aislado y automatizado de rebotes (hard bounces) para MailPoet 5.31+ vía IMAP y WP-CLI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "publikate/mailpoet-bouncer",
+  "description": "Procesamiento seguro y aislado de rebotes (hard bounces) para MailPoet 5.31+ vía IMAP y WP-CLI.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Publikate",
+      "homepage": "https://publikate.cl"
+    }
+  ],
+  "require": {
+    "php": ">=8.1"
+  },
+  "require-dev": {
+    "humbug/php-scoper": "^0.18",
+    "squizlabs/php_codesniffer": "^3.10",
+    "wp-coding-standards/wpcs": "^3.1",
+    "phpstan/phpstan": "^1.11"
+  },
+  "autoload": {
+    "psr-4": {
+      "Publikate\\MailPoetBouncer\\": "src/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true,
+    "platform": {
+      "php": "8.1.0"
+    }
+  },
+  "scripts": {
+    "build": "bash bin/build.sh",
+    "lint": "phpcs --standard=WordPress src/ mailpoet-bouncer.php",
+    "analyse": "phpstan analyse src --level=8"
+  }
+}

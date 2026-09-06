@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MailPoet Bouncer (Publikate) — Panel de Control y Documentación</title>
+  <meta name="description" content="Procesamiento seguro, aislado y automatizado de rebotes (hard bounces) para MailPoet 5.31+ vía IMAP y WP-CLI." />
+  <meta property="og:title" content="MailPoet Bouncer (Publikate)" />
+  <meta property="og:description" content="Procesamiento seguro, aislado y automatizado de rebotes para MailPoet 5.31+ vía IMAP y WP-CLI." />
+  <style>
+    :root {
+      --bg-canvas: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --success: #16a34a;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --radius: 12px;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: #eff6ff;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 75ch;
+    }
+
+    .grid-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .metric-card {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .metric-card h3 {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-card p {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .section h2 {
+      font-size: 1.35rem;
+      margin-bottom: 1rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-button {
+      padding: 0.65rem 1.25rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-button:hover {
+      color: var(--text-main);
+    }
+
+    .tab-button.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    code, pre {
+      font-family: var(--font-mono);
+    }
+
+    pre {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .table th, .table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      text-align: left;
+    }
+
+    .table th {
+      background: var(--bg-subtle);
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.65rem 1.3rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-subtle);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-success { background: #dcfce7; color: #166534; }
+    .status-warning { background: #fef3c7; color: #92400e; }
+    .status-danger { background: #fee2e2; color: #991b1b; }
+
+    textarea, input[type="text"], select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: var(--bg-surface);
+      color: var(--text-main);
+      margin-top: 0.25rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-main);
+    }
+
+    .simulator-output {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app-root">
+    <header id="main-header">
+      <span class="badge" id="badge-status">Plugin WordPress Activo</span>
+      <h1 id="plugin-title">MailPoet Bouncer (Publikate)</h1>
+      <p class="subtitle" id="plugin-description">
+        Módulo técnico para el procesamiento desatendido y seguro de rebotes (Hard Bounces) para MailPoet 5.31+ mediante IMAP/Sockets, clasificación conservadora RFC 3464 y tareas periódicas en WP-CLI.
+      </p>
+
+      <div style="margin-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+        <a href="./mailpoet-bouncer.zip" download="mailpoet-bouncer.zip" class="btn btn-primary" id="btn-download-zip" style="font-size: 1rem; padding: 0.75rem 1.5rem; display: inline-flex; align-items: center; gap: 0.6rem; text-decoration: none; box-shadow: 0 2px 4px rgba(37,99,235,0.2);">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Descargar mailpoet-bouncer.zip
+        </a>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+          Paquete final listo para subir e instalar directamente en WordPress (<code>wp-content/plugins/</code>)
+        </span>
+      </div>
+
+      <div class="grid-metrics" id="metrics-grid">
+        <div class="metric-card" id="metric-version">
+          <h3>Versión Plugin</h3>
+          <p>1.2.0 (Hardening & Producción)</p>
+        </div>
+        <div class="metric-card" id="metric-php">
+          <h3>Compatibilidad PHP</h3>
+          <p>PHP 8.1, 8.2, 8.3, 8.4</p>
+        </div>
+        <div class="metric-card" id="metric-protocol">
+          <h3>Transporte IMAP</h3>
+          <p>ext-imap + Fallback Sockets</p>
+        </div>
+        <div class="metric-card" id="metric-wp">
+          <h3>Requisito WordPress</h3>
+          <p>WP 6.0+ / MailPoet 5.31+</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="section" id="workspace-navigator">
+      <nav class="nav-tabs" id="navigation-tabs" role="tablist">
+        <button class="tab-button active" id="tab-btn-overview" data-target="pane-overview" type="button">Visión General</button>
+        <button class="tab-button" id="tab-btn-simulator" data-target="pane-simulator" type="button">Simulador DSN / Parser</button>
+        <button class="tab-button" id="tab-btn-cli" data-target="pane-cli" type="button">Comandos WP-CLI / Cron</button>
+        <button class="tab-button" id="tab-btn-audit" data-target="pane-audit" type="button">Arquitectura y Seguridad</button>
+      </nav>
+
+      <!-- Panel 1: Visión General -->
+      <section class="tab-pane active" id="pane-overview">
+        <h2>Características Principales del Plugin</h2>
+        <p style="margin-bottom: 1rem; color: var(--text-muted);">
+          Diseñado para funcionar en VPS Linux (AlmaLinux 9 / CentOS Web Panel) con máximo aislamiento operacional:
+        </p>
+
+        <table class="table" id="features-table">
+          <thead>
+            <tr>
+              <th>Componente</th>
+              <th>Mecanismo</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Conector IMAP Híbrido</strong></td>
+              <td>Usa <code>ext-imap</code> con UIDs; fallback automático a <code>SocketImapClient</code> (TLS/STARTTLS).</td>
+              <td><span class="status-pill status-success">Operativo</span></td>
+            </tr>
+            <tr>
+              <td><strong>Clasificador RFC 3464</strong></td>
+              <td>Enfoque conservador: solo códigos 5.1.X / 5.2.1 confirmados como hard bounce; 4.X.X y 5.2.2 son soft.</td>
+              <td><span class="status-pill status-success">Protección Activa</span></td>
+            </tr>
+            <tr>
+              <td><strong>Actualizador de Suscriptores</strong></td>
+              <td>Arquitectura en 3 niveles: MailPoet Doctrine 5.x, MailPoet Models y fallback directo en <code>$wpdb</code>.</td>
+              <td><span class="status-pill status-success">Idempotente</span></td>
+            </tr>
+            <tr>
+              <td><strong>Registro de Auditoría</strong></td>
+              <td>Tabla dedicada <code>wp_pkmb_audit_log</code> con purga automática tras 60 días.</td>
+              <td><span class="status-pill status-success">Sin Fuga de Datos</span></td>
+            </tr>
+            <tr>
+              <td><strong>Ejecución sin Timeout</strong></td>
+              <td>Comando WP-CLI <code>wp mailpoet-bouncer process</code> con lock por transient para crontab de sistema.</td>
+              <td><span class="status-pill status-success">Aislado de HTTP</span></td>
+            </tr>
+            <tr>
+              <td><strong>Ejecución Manual & Barber Pole</strong></td>
+              <td>Botón "Procesar ahora" en wp-admin con barra de barbería animada, secuencia de pasos y resumen.</td>
+              <td><span class="status-pill status-success">Operativo</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Panel 2: Simulador DSN -->
+      <section class="tab-pane" id="pane-simulator">
+        <h2>Simulador de Diagnóstico RFC 3464</h2>
+        <p style="margin-bottom: 1rem; color: var(--text-muted);">
+          Pruebe cómo el algoritmo del clasificador analiza cabeceras de entrega y códigos de diagnóstico.
+        </p>
+
+        <div class="form-group">
+          <label for="sim-email">Correo Destinatario Reportado</label>
+          <input type="text" id="sim-email" value="usuario.invalido@dominio-inexistente.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="sim-dsn">Código de Estado DSN</label>
+          <select id="sim-dsn">
+            <option value="5.1.1">5.1.1 — Buzón inexistente / Dirección desconocida (Hard)</option>
+            <option value="5.1.2">5.1.2 — Nombre de dominio no encontrado (Hard)</option>
+            <option value="5.2.1">5.2.1 — Buzón deshabilitado permanentemente (Hard)</option>
+            <option value="4.2.2">4.2.2 — Buzón lleno temporalmente (Soft)</option>
+            <option value="5.2.2">5.2.2 — Cuota excedida (Tratado como Soft por precaución)</option>
+            <option value="4.7.1">4.7.1 — Greylisting o limitación de tasa (Soft)</option>
+            <option value="auto">Out of Office — Respuesta automática / Vacaciones (Autoresponder)</option>
+          </select>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btn-run-simulation">Evaluar Clasificación</button>
+
+        <div class="simulator-output" id="simulation-result">
+          <!-- Resultado dinámico -->
+        </div>
+      </section>
+
+      <!-- Panel 3: WP-CLI -->
+      <section class="tab-pane" id="pane-cli">
+        <h2>Automatización en Crontab de Servidor</h2>
+        <p style="margin-bottom: 1rem; color: var(--text-muted);">
+          Para evitar bloqueos de peticiones web y asegurar ejecución desatendida en AlmaLinux 9 / CWP:
+        </p>
+
+        <div class="form-group">
+          <label>Línea recomendada en crontab de usuario (cada 5 minutos):</label>
+          <pre><code>*/5 * * * * /usr/local/bin/wp mailpoet-bouncer process --path=/home/usuario/public_html > /dev/null 2>&1</code></pre>
+        </div>
+
+        <h3 style="margin: 1.5rem 0 0.5rem; font-size: 1.1rem;">Comandos disponibles:</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Comando</th>
+              <th>Propósito</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>wp mailpoet-bouncer process</code></td>
+              <td>Ejecución ordinaria por lotes según configuración de Ajustes.</td>
+            </tr>
+            <tr>
+              <td><code>wp mailpoet-bouncer process --dry-run</code></td>
+              <td>Modo simulación: parsea y audita sin modificar suscriptores en MailPoet.</td>
+            </tr>
+            <tr>
+              <td><code>wp mailpoet-bouncer process --limit=100</code></td>
+              <td>Sobrescribe el tamaño del lote (1 a 500 mensajes).</td>
+            </tr>
+            <tr>
+              <td><code>wp mailpoet-bouncer process --force</code></td>
+              <td>Ignora el lock previo en caso de cierre abrupto del servidor.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Panel 4: Arquitectura y Auditoría -->
+      <section class="tab-pane" id="pane-audit">
+        <h2>Reglas de Seguridad y Criterios Aplicados</h2>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Regla de Seguridad</th>
+              <th>Implementación Concreta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Prevención de Inyección SQL</strong></td>
+              <td>100% de consultas usan <code>$wpdb->prepare()</code> o la API de <code>$wpdb->insert()</code> / <code>$wpdb->update()</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>Sanitización y Escapado</strong></td>
+              <td><code>sanitize_email()</code>, <code>sanitize_text_field()</code>, <code>absint()</code> y <code>esc_html()</code> en cada límite de entrada/salida.</td>
+            </tr>
+            <tr>
+              <td><strong>Control de Acceso</strong></td>
+              <td>Verificación estricta de <code>current_user_can('manage_options')</code> y nonces criptográficos en endpoints AJAX.</td>
+            </tr>
+            <tr>
+              <td><strong>Aislamiento de Errores</strong></td>
+              <td>Excepciones en mensajes individuales no cancelan el lote; se registran advertencias sin abortar.</td>
+            </tr>
+            <tr>
+              <td><strong>Zero CDNs Externos</strong></td>
+              <td>Todos los scripts y estilos se sirven localmente sin dependencias en la nube no auditadas.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Control de pestañas
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+        button.classList.add('active');
+        const targetId = button.getAttribute('data-target');
+        const targetPane = document.getElementById(targetId);
+        if (targetPane) targetPane.classList.add('active');
+      });
+    });
+
+    // Simulador de evaluación DSN
+    const btnSim = document.getElementById('btn-run-simulation');
+    const resultBox = document.getElementById('simulation-result');
+
+    if (btnSim && resultBox) {
+      btnSim.addEventListener('click', () => {
+        const email = document.getElementById('sim-email').value.trim();
+        const dsn = document.getElementById('sim-dsn').value;
+
+        let type = 'unknown';
+        let action = 'ignored';
+        let explanation = '';
+        let pillClass = 'status-warning';
+
+        if (dsn === '5.1.1' || dsn === '5.1.2' || dsn === '5.2.1') {
+          type = 'HARD BOUNCE';
+          action = 'bounced (Suscriptor actualizado en MailPoet)';
+          explanation = 'Fallo permanente de buzón o dominio según RFC 3463. Correo marcado como rebotado.';
+          pillClass = 'status-danger';
+        } else if (dsn === '4.2.2' || dsn === '5.2.2' || dsn === '4.7.1') {
+          type = 'SOFT BOUNCE';
+          action = 'delayed / ignored (Suscriptor preservado intacto)';
+          explanation = 'Fallo temporal de cuota o saturación. Por precaución defensiva, no se da de baja.';
+          pillClass = 'status-warning';
+        } else if (dsn === 'auto') {
+          type = 'AUTORESPONDER';
+          action = 'ignored (Suscriptor preservado intacto)';
+          explanation = 'Respuesta automática de ausencia detectada. Se descarta para proteger al suscriptor.';
+          pillClass = 'status-success';
+        }
+
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+            <strong>Resultado: <span class="status-pill ${pillClass}">${type}</span></strong>
+            <small style="color: var(--text-muted);">Destinatario: ${email}</small>
+          </div>
+          <p><strong>Acción en MailPoet:</strong> <code>${action}</code></p>
+          <p style="margin-top: 0.25rem; font-size: 0.9rem; color: var(--text-muted);">${explanation}</p>
+        `;
+      });
+    }
+
+    // Gestor de descarga binaria segura del plugin ZIP
+    const btnDownload = document.getElementById('btn-download-zip');
+    if (btnDownload) {
+      btnDownload.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const originalText = btnDownload.innerHTML;
+        btnDownload.innerHTML = 'Descargando paquete...';
+        btnDownload.style.pointerEvents = 'none';
+
+        try {
+          const response = await fetch('/mailpoet-bouncer.zip?t=' + Date.now());
+          if (!response.ok) {
+            throw new Error('Error al solicitar el archivo ZIP: HTTP ' + response.status);
+          }
+          const blob = await response.blob();
+          
+          // Verificar que no sea HTML ni esté corrupto
+          const buffer = await blob.slice(0, 4).arrayBuffer();
+          const uint8 = new Uint8Array(buffer);
+          // Magic bytes estándar de PKZIP: 'PK\x03\x04' (0x50, 0x4B, 0x03, 0x04)
+          const isZip = uint8[0] === 0x50 && uint8[1] === 0x4B && uint8[2] === 0x03 && uint8[3] === 0x04;
+          
+          if (!isZip) {
+            throw new Error('El servidor devolvió un tipo de contenido incorrecto en vez del archivo ZIP.');
+          }
+
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const tempLink = document.createElement('a');
+          tempLink.href = downloadUrl;
+          tempLink.setAttribute('download', 'mailpoet-bouncer.zip');
+          document.body.appendChild(tempLink);
+          tempLink.click();
+          document.body.removeChild(tempLink);
+          window.URL.revokeObjectURL(downloadUrl);
+
+          btnDownload.innerHTML = '¡Descarga completada!';
+          setTimeout(() => {
+            btnDownload.innerHTML = originalText;
+            btnDownload.style.pointerEvents = 'auto';
+          }, 2500);
+        } catch (err) {
+          console.error(err);
+          alert('Hubo un problema al descargar el ZIP: ' + err.message);
+          btnDownload.innerHTML = originalText;
+          btnDownload.style.pointerEvents = 'auto';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
